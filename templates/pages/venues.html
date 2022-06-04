@@ -12,8 +12,21 @@
 					<h5>{{ venue.name }}</h5>
 				</div>
 			</a>
+			<button data-id={{ venue.id }} onclick="deleteVenue(event)" class="delete-button">🗑️</button>
 		</li>
 		{% endfor %}
 	</ul>
+	<script>
+		function deleteVenue (event) {
+			const venueId = parseInt(event.target.dataset.id)
+			fetch(`/venues/${venueId}`, {
+				method: 'DELETE'
+			}).then(response => {
+				window.location = '/'
+			}).catch(err => {
+				console.log(err)
+			})
+		}
+	</script>
 {% endfor %}
 {% endblock %}
