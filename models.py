@@ -65,6 +65,7 @@ class Artist(db.Model):
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     shows = db.relationship("Show", backref="artist", lazy=True, cascade="all, delete-orphan")
 
     def __repr__(self):

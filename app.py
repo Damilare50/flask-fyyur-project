@@ -40,7 +40,9 @@ app.jinja_env.filters['datetime'] = format_datetime
 
 @app.route('/')
 def index():
-  return render_template('pages/home.html')
+  venues = Venue.query.order_by(db.desc(Venue.created_at)).limit(10).all()
+  artists = Artist.query.order_by(db.desc(Artist.created_at)).limit(10).all()
+  return render_template('pages/home.html', venues=venues, artists=artists)
 
 
 #  Venues
@@ -153,19 +155,37 @@ def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
   try:
+    name = request.form['name']
+    genres = request.form['genres']
+    address = request.form['address']
+    city = request.form['city']
+    state = request.form['state']
+    phone = request.form['phone']
+    facebook_link = request.form['facebook_link']
+    image_link = request.form['image_link']
+    website = request.form['website_link']
+    if request.form['seeking_talent'] == 'y':
+      seeking_talent = True
+    else:
+      seeking_talent = False
+    seeking_description = request.form['seeking_description']
+    created_at = datetime.utcnow()
+
     created_venue = Venue(
-      name=request.form['name'],
-      genres=request.form['genres'],
-      address=request.form['address'],
-      city=request.form['city'],
-      state=request.form['state'],
-      phone=request.form['phone'],
-      facebook_link=request.form['facebook_link'],
-      image_link=request.form['image_link'],
-      website=request.form['website_link'],
-      seeking_talent=request.form['seeking_talent'],
-      seeking_description=request.form['seeking_description']
+      name=name,
+      genres=genres,
+      address=address,
+      city=city,
+      state=state,
+      phone=phone,
+      facebook_link=facebook_link,
+      image_link=image_link,
+      website=website,
+      seeking_talent=seeking_talent,
+      seeking_description=seeking_description,
+      created_at=created_at
     )
+
     db.session.add(created_venue)
     db.session.commit()
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
@@ -322,15 +342,18 @@ def edit_artist_submission(artist_id):
       artist.phone = request.form['phone']
       artist.genres = request.form['genres']
       artist.image_link = request.form['image_link']
-      artist.seeking_venue = request.form['seeking_venue']
+      if request.form['seeking_venue'] == 'y':
+        artist.seeking_venue = True
+      else:
+        artist.seeking_venue = False
       artist.seeking_description = request.form['seeking_description']
       artist.facebook_link = request.form['facebook_link']
-      artist.website = request.form['website']
-
-      flash("Artist " + request.form["name"] + " was successfully updated!")
+      artist.website = request.form['website_link']
 
       db.session.add(artist)
       db.session.commit()
+
+      flash("Artist " + request.form["name"] + " was successfully updated!")
     except Exception as e:
       flash('Artist ' + request.form["name"] + 'was not updated successfully')
       db.session.rollback()
@@ -378,8 +401,12 @@ def edit_venue_submission(venue_id):
       venue.image_link = request.form['image_link']
       venue.address = request.form['address']
       venue.website = request.form['website_link']
-      venue.seeking_talent = request.form['seeking_talent']
+      if request.form['seeking_talent'] == 'y':
+        venue.seeking_talent = True
+      else:
+        venue.seeking_talent = False
       venue.seeking_description = request.form['seeking_description']
+      venue.created_at = datetime.utcnow()
               
       db.session.add(venue)
       db.session.commit()
@@ -407,29 +434,43 @@ def create_artist_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
 
-
-
   if request.method == 'POST':
+
+    name = request.form['name']
+    city = request.form['city']
+    state = request.form['state']
+    phone = request.form['phone']
+    genres = request.form['genres']
+    website = request.form['website_link']
+    if request.form['seeking_venue'] == 'y':
+      seeking_venue = True
+    else:
+      seeking_venue = False
+    image_link = request.form['image_link']
+    seeking_description = request.form['seeking_description']
+    facebook_link = request.form['facebook_link']
+
     try:
       new_artist = Artist(
-        name=request.form['name'],
-        city=request.form['city'],
-        state=request.form['state'],
-        phone=request.form['phone'],
-        genres=request.form['genres'],
-        website=request.form['website_link'],
-        seeking_venue=request.form['seeking_venue'],
-        seeking_description=request.form['seeking_description'],
-        image_link=request.form['image_link'],
-        facebook_link=request.form['facebook_link']
+        name=name,
+        city=city,
+        state=state,
+        phone=phone,
+        genres=genres,
+        website=website,
+        seeking_venue=seeking_venue,
+        seeking_description=seeking_description,
+        image_link=image_link,
+        facebook_link=facebook_link
       )
+
       db.session.add(new_artist)
       db.session.commit()
+      
       flash('Artist ' + request.form['name'] + ' was successfully listed!')
     except Exception as e:
       db.session.rollback()
-      print(e)
-      # flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
+      flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
     finally:
       db.session.close()
 
